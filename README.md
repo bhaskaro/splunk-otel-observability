@@ -4,6 +4,8 @@ Repository name: **`splunk-otel-observability`**.
 
 For the architecture, implementation record, current status, troubleshooting,
 and prioritized roadmap, see [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
+To connect Java, Linux-hosted, containerized, or other language applications,
+see [docs/USING_WITH_OTHER_APPLICATIONS.md](docs/USING_WITH_OTHER_APPLICATIONS.md).
 
 This Compose project runs:
 

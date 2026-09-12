@@ -87,7 +87,7 @@ service:
       processors: [memory_limiter, resource_detection, resource/homelab_host, batch]
       exporters: [signalfx]
     logs:
-      receivers: [file_log/tomcat]
+      receivers: [otlp, file_log/tomcat]
       processors: [memory_limiter, resource_detection, resource/homelab_host, batch]
       exporters: [splunk_hec/logs]
 

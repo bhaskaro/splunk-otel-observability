@@ -11,19 +11,46 @@ Git repository name: **`splunk-otel-observability`**.
 
 ## Architecture
 
-```text
-                           OTLP/HTTP :4318
-  traffic-generator ---> Tomcat + Splunk Java agent -------------------+
-       5-10 concurrent      | traces and JVM metrics                    |
-       requests/second      |                                           v
-                            +--> ./tomcat/logs <-- file_log ------ OTel Collector
-                                                          host_metrics --+
-                                                                        |
-                         +----------------------------------------------+
-                         | traces -> Splunk APM
-                         | metrics -> Splunk Infrastructure Monitoring
-                         + logs -> Splunk log ingest (currently HTTP 404)
+```mermaid
+flowchart LR
+    User[Browser or API client]
+    Load[Traffic generator<br/>5-10 concurrent requests per second]
+
+    subgraph Docker[Docker Compose homelab]
+        Init[Splunk Java-agent init]
+        Tomcat[Tomcat<br/>homelab-tomcat-otel-demo]
+        Files[(tomcat/logs)]
+
+        subgraph Collector[Splunk OpenTelemetry Collector]
+            OTLP[OTLP receiver<br/>HTTP 4318 / gRPC 4317]
+            FileLog[file_log receiver]
+            Host[host_metrics receiver]
+            Process[Resource detection<br/>correlation + batching]
+        end
+    end
+
+    subgraph Splunk[Splunk Observability Cloud]
+        APM[APM<br/>traces]
+        IM[Infrastructure Monitoring<br/>JVM and host metrics]
+        Logs[Log ingest<br/>currently HTTP 404]
+    end
+
+    User -->|HTTP requests| Tomcat
+    Load -->|Random HTTP load| Tomcat
+    Init -.->|Shared agent JAR| Tomcat
+    Tomcat -->|OTLP traces and JVM metrics| OTLP
+    Tomcat -->|JULI and access logs| Files
+    Files -->|Read-only tail| FileLog
+    Host -->|CPU, memory, network,<br/>load, paging, processes| Process
+    OTLP --> Process
+    FileLog --> Process
+    Process -->|OTLP/HTTP traces| APM
+    Process -->|SignalFx metrics| IM
+    Process -.->|Splunk HEC logs| Logs
 ```
+
+Solid arrows represent working data paths. The dotted log-export arrow marks
+the currently blocked remote `/v1/log` endpoint; local file collection works.
 
 ## Components
 
@@ -242,6 +269,19 @@ docker compose logs tomcat | grep -i javaagent
 curl http://localhost:13133/
 docker compose logs otel-collector
 ```
+
+For traces, inspect the collector's internal counters from its network namespace:
+
+```sh
+docker run --rm --network container:splunk-otel-collector \
+  curlimages/curl:8.16.0 -fsS http://127.0.0.1:8888/metrics | \
+  grep -E 'receiver_accepted_spans|receiver_refused_spans|exporter_sent_spans|exporter_send_failed_spans'
+```
+
+If accepted and sent spans increase while failed/refused spans remain zero, the
+pipeline is healthy. In Splunk APM, confirm the correct organization and realm,
+select environment `homelab`, search for service
+`homelab-tomcat-otel-demo`, and use a recent time window.
 
 ## Repository initialization
 

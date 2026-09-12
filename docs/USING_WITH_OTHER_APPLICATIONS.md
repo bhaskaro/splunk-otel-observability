@@ -175,6 +175,13 @@ permissions and security impact before enabling it.
 
 ## Official references
 
+### Account and onboarding
+
+- [Start a free Splunk Observability Cloud trial](https://www.splunk.com/en_us/download/o11y-cloud-free-trial.html)
+- [Free-trial and guided-onboarding instructions](https://help.splunk.com/en/splunk-observability-cloud/get-started/free-trial/splunk-observability-cloud-free-trial-and-guided-onboarding)
+- [Splunk Observability Cloud getting-started hub](https://help.splunk.com/en/splunk-observability-cloud/get-started)
+- [Find your realm, endpoints, organization, and API token](https://help.splunk.com/en/splunk-observability-cloud/administer/org-reference-info/view-your-realm-api-endpoints-and-organization)
+
 ### Splunk OpenTelemetry Collector
 
 - [Splunk OpenTelemetry Collector project](https://github.com/signalfx/splunk-otel-collector)
@@ -187,6 +194,8 @@ permissions and security impact before enabling it.
 
 - [Instrument Java applications for Splunk Observability](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/instrument-your-java-application)
 - [Splunk Java instrumentation project](https://github.com/signalfx/splunk-otel-java)
+- [Send traces to Splunk APM](https://help.splunk.com/en/splunk-observability-cloud/monitor-application-performance/set-up-splunk-apm/send-traces-to-splunk-apm)
+- [Troubleshoot Java instrumentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/troubleshoot-the-java-agent)
 - [APM and Infrastructure Monitoring related content](https://help.splunk.com/en/splunk-observability-cloud/data-tools/related-content)
 - [Configure APM deployment environments](https://help.splunk.com/en/splunk-observability-cloud/monitor-application-performance/set-up-splunk-apm/set-up-deployment-environments-in-splunk-apm)
 

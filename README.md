@@ -95,3 +95,33 @@ docker compose logs otel-collector
 If the collector reports `401` or `403`, confirm the access token and its ingest
 permissions. DNS/TLS failures usually indicate an incorrect realm or outbound
 firewall restrictions.
+
+## Official references
+
+### Create and configure an account
+
+- [Start a free Splunk Observability Cloud trial](https://www.splunk.com/en_us/download/o11y-cloud-free-trial.html)
+- [Free-trial and guided-onboarding instructions](https://help.splunk.com/en/splunk-observability-cloud/get-started/free-trial/splunk-observability-cloud-free-trial-and-guided-onboarding)
+- [Splunk Observability Cloud getting-started hub](https://help.splunk.com/en/splunk-observability-cloud/get-started)
+- [Find your realm, API endpoints, organization, and API token](https://help.splunk.com/en/splunk-observability-cloud/administer/org-reference-info/view-your-realm-api-endpoints-and-organization)
+
+### Collector and application instrumentation
+
+- [Splunk OpenTelemetry Collector documentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector)
+- [Splunk OpenTelemetry Collector source repository](https://github.com/signalfx/splunk-otel-collector)
+- [Send traces to Splunk APM](https://help.splunk.com/en/splunk-observability-cloud/monitor-application-performance/set-up-splunk-apm/send-traces-to-splunk-apm)
+- [Instrument Java applications](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/instrument-your-java-application)
+- [Configure the Splunk Java agent](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/configure-the-java-agent)
+- [Splunk Java agent compatibility and requirements](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/requirements)
+- [Software instrumentation methods and supported languages](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrumentation-methods)
+
+### Metrics, logs, and troubleshooting
+
+- [Configure Linux infrastructure metrics](https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/advanced-configuration-for-linux)
+- [Connect Java traces with logs](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/connect-trace-data-with-logs)
+- [Configure the Splunk HEC exporter](https://help.splunk.com/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-components/exporters/splunk-hec-exporter)
+- [Troubleshoot Java instrumentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/troubleshoot-the-java-agent)
+- [Troubleshoot missing APM data](https://help.splunk.com/splunk-observability-cloud/monitor-application-performance/set-up-splunk-apm/troubleshoot-your-instrumentation)
+
+Additional examples for connecting other runtimes are in
+[docs/USING_WITH_OTHER_APPLICATIONS.md](docs/USING_WITH_OTHER_APPLICATIONS.md).

@@ -1,0 +1,96 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  file_log/tomcat:
+    include:
+      - /var/log/tomcat/localhost_access_log*.txt
+      - /var/log/tomcat/catalina*.log
+      - /var/log/tomcat/localhost*.log
+    start_at: beginning
+    include_file_name: true
+    include_file_path: true
+    operators:
+      - type: add
+        field: resource["service.name"]
+        value: homelab-tomcat-otel-demo
+      - type: add
+        field: resource["deployment.environment.name"]
+        value: homelab
+
+  host_metrics:
+    root_path: /hostfs
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      load:
+      memory:
+      network:
+      paging:
+      processes:
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 384
+    spike_limit_mib: 96
+  resource_detection:
+    detectors: [system]
+    timeout: 2s
+    override: false
+  resource/homelab_host:
+    attributes:
+      - key: host.name
+        value: homelab-docker-host
+        action: upsert
+      - key: deployment.environment.name
+        value: homelab
+        action: upsert
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  signalfx:
+    access_token: ${env:SPLUNK_ACCESS_TOKEN}
+    realm: ${env:SPLUNK_REALM}
+    sync_host_metadata: true
+
+  otlp_http/traces:
+    traces_endpoint: https://ingest.${env:SPLUNK_REALM}.observability.splunkcloud.com/v2/trace/otlp
+    headers:
+      X-SF-Token: ${env:SPLUNK_ACCESS_TOKEN}
+
+  splunk_hec/logs:
+    endpoint: https://ingest.${env:SPLUNK_REALM}.observability.splunkcloud.com/v1/log
+    token: ${env:SPLUNK_ACCESS_TOKEN}
+    source: otel
+    sourcetype: tomcat
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource_detection, resource/homelab_host, batch]
+      exporters: [otlp_http/traces]
+    metrics:
+      receivers: [otlp, host_metrics]
+      processors: [memory_limiter, resource_detection, resource/homelab_host, batch]
+      exporters: [signalfx]
+    logs:
+      receivers: [file_log/tomcat]
+      processors: [memory_limiter, resource_detection, resource/homelab_host, batch]
+      exporters: [splunk_hec/logs]
+
+  telemetry:
+    logs:
+      level: info

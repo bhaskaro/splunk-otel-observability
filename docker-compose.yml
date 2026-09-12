@@ -1,0 +1,91 @@
+services:
+  otel-java-agent:
+    image: ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:v2.30.0
+    container_name: splunk-otel-java-agent-init
+    command: ["sh", "-c", "cp /splunk-otel-javaagent.jar /agent/splunk-otel-javaagent.jar"]
+    volumes:
+      - java-agent:/agent
+    restart: "no"
+
+  otel-collector:
+    image: quay.io/signalfx/splunk-otel-collector:0.157.0
+    container_name: splunk-otel-collector
+    command: ["--config=/etc/otel/collector/config.yaml"]
+    environment:
+      SPLUNK_ACCESS_TOKEN: ${SPLUNK_ACCESS_TOKEN:?Set SPLUNK_ACCESS_TOKEN in .env}
+      SPLUNK_REALM: ${SPLUNK_REALM:?Set SPLUNK_REALM in .env}
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel/collector/config.yaml:ro
+      - ./tomcat/logs:/var/log/tomcat:ro
+      - /proc:/hostfs/proc:ro
+      - /sys:/hostfs/sys:ro
+      - /etc/hostname:/hostfs/etc/hostname:ro
+      - /etc/os-release:/hostfs/etc/os-release:ro
+    ports:
+      - "4317:4317" # OTLP/gRPC
+      - "4318:4318" # OTLP/HTTP
+      - "13133:13133" # Collector health endpoint
+    restart: unless-stopped
+
+  tomcat:
+    image: tomcat
+    container_name: otel-test-tomcat
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/opt/splunk/splunk-otel-javaagent.jar
+      OTEL_SERVICE_NAME: homelab-tomcat-otel-demo
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=homelab,host.name=homelab-docker-host,service.version=1.0.0
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: none
+      OTEL_METRIC_EXPORT_INTERVAL: 10000
+      SPLUNK_PROFILER_ENABLED: "false"
+      UMASK: "0022"
+    command:
+      - /bin/sh
+      - -c
+      - chmod -R a+rX /usr/local/tomcat/logs && exec catalina.sh run
+    volumes:
+      - java-agent:/opt/splunk:ro
+      - ./tomcat/webapps:/usr/local/tomcat/webapps:ro
+      - ./tomcat/logs:/usr/local/tomcat/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      otel-java-agent:
+        condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
+    restart: unless-stopped
+
+  traffic-generator:
+    image: curlimages/curl:8.16.0
+    container_name: tomcat-traffic-generator
+    command:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          random_byte=$$(od -An -N1 -tu1 /dev/urandom)
+          workers=$$((5 + random_byte % 6))
+          worker=1
+          while [ "$$worker" -le "$$workers" ]; do
+            request_byte=$$(od -An -N1 -tu1 /dev/urandom)
+            if [ $$((request_byte % 2)) -eq 0 ]; then
+              path=/
+            else
+              path=/tomcat-splunk-otel-demo/
+            fi
+            curl --fail --silent --show-error "http://tomcat:8080$$path" >/dev/null &
+            worker=$$((worker + 1))
+          done
+          wait
+          sleep 1
+        done
+    depends_on:
+      - tomcat
+    restart: unless-stopped
+
+volumes:
+  java-agent:
